@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f6f9" />
+    <title>Equip AI Agent · 调试控制台</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
+    <div class="app-shell">
+      <!-- 侧边导航 -->
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">
+            <b>Equip AI Agent</b>
+          </span>
+        </div>
+
+        <nav class="nav" aria-label="主导航">
+          <button class="nav-item active" data-view="console" aria-label="工作台" aria-current="page">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H4z"/><path d="M8 20h8"/><path d="M7 9l3 2.5L7 14"/><path d="M13 14h4"/></svg>
+            <span>工作台</span>
+          </button>
+          <button class="nav-item" data-view="machine" aria-label="设备状态">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13h4l2-3h6l2 3h4"/><path d="M5 13v5h14v-5"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="18" r="1.6"/><path d="M9 10V6h5l2 4"/></svg>
+            <span>设备状态</span>
+          </button>
+          <button class="nav-item" data-view="capabilities" aria-label="能力目录">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
+            <span>能力目录</span>
+          </button>
+          <button class="nav-item" data-view="settings" aria-label="运行时配置">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14"/><path d="M12 5v14"/><path d="M18 5v14"/><circle cx="6" cy="9" r="2"/><circle cx="12" cy="14" r="2"/><circle cx="18" cy="8" r="2"/></svg>
+            <span>运行时配置</span>
+          </button>
+          <button class="nav-item" data-view="audit" aria-label="审计日志">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h9l3 3v13H6z"/><path d="M9 11h6"/><path d="M9 15h6"/><path d="M9 7h3"/></svg>
+            <span>审计日志</span>
+          </button>
+        </nav>
+
+        <div class="nav-group">
+          <div class="nav-group-label">设备 <span id="machine-total" class="nav-count">0</span></div>
+          <div id="machine-switcher" class="machine-switcher" role="listbox" aria-label="选择设备">
+            <div class="switcher-empty">加载设备…</div>
+          </div>
+        </div>
+
+        <div class="sidebar-foot">
+          <div class="safety-note">
+            <b>LOCAL ONLY</b>
+            <span>密钥仅引用环境变量名，不写入配置文件。</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 主区 -->
+      <div class="main">
+        <!-- 全局设备状态条 -->
+        <header class="statusbar">
+          <div class="sb-machine">
+            <span class="sb-avatar" aria-hidden="true"></span>
+            <span class="sb-id">
+              <b id="q-model">—</b>
+              <code id="q-id">—</code>
+            </span>
+          </div>
+          <div class="sb-metrics">
+            <div class="sb-metric"><span>工况</span><b id="q-state">—</b></div>
+            <div class="sb-metric"><span>发动机</span><b id="q-engine">—</b></div>
+            <div class="sb-metric"><span>燃油</span><b id="q-fuel">—</b></div>
+            <div class="sb-metric sb-metric-fault"><span>活动故障</span><b id="q-fault">—</b></div>
+          </div>
+          <div class="sb-actions">
+            <span class="conn" id="conn-status"><i></i>本地调试</span>
+            <button class="icon-btn" id="refresh-btn" title="刷新" aria-label="刷新">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-.9 4.5"/><path d="M20 5v6h-6"/></svg>
+            </button>
+          </div>
+        </header>
+
+        <main class="views" id="main-content" tabindex="-1">
+          <!-- ===== 工作台 ===== -->
+          <section id="view-console" class="view active" aria-labelledby="console-title">
+            <div class="console-grid">
+              <section class="card conversation-card">
+                <div class="card-head">
+                  <div class="card-title"><h1 id="console-title">任务编排工作台</h1></div>
+                  <span class="tag tag-gated">POLICY-GATED</span>
+                </div>
+                <div class="session-bar">
+                  <div class="session-picker">
+                    <button type="button" class="session-toggle" id="session-toggle" aria-haspopup="listbox" aria-expanded="false">
+                      <span class="session-dot" aria-hidden="true"></span>
+                      <span class="session-name" id="session-name">新会话</span>
+                      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                    </button>
+                    <div class="session-menu" id="session-menu" role="listbox" aria-label="会话列表" hidden></div>
+                  </div>
+                  <button type="button" class="ghost-btn new-session-btn" id="new-session-btn">＋ 新会话</button>
+                  <button type="button" class="ghost-btn danger new-session-btn" id="delete-session-btn" title="删除当前会话及其后端历史">清空当前会话</button>
+                </div>
+                <div id="conversation" class="conversation" aria-live="polite">
+                  <div class="empty-state">
+                    <span class="empty-glyph" aria-hidden="true"></span>
+                    <b>开始一轮查询或故障诊断</b>
+                    <span>例如：查看状态，查询 E123 手册并给出处理方案。</span>
+                  </div>
+                </div>
+                <form id="turn-form" class="composer" aria-describedby="turn-hint turn-form-error">
+                  <label class="visually-hidden" for="turn-input">输入查询、诊断或设备操作请求</label>
+                  <textarea id="turn-input" name="command" rows="2" maxlength="2000"
+                    autocomplete="off" aria-describedby="turn-hint"
+                    placeholder="例如：查看状态，查询 E123 手册并给出处理方案…"></textarea>
+                  <p id="turn-hint" class="composer-hint">Enter 执行，Shift + Enter 换行。设备操作仍需通过策略与审批。</p>
+                  <p id="turn-form-error" class="form-error" role="alert" tabindex="-1" hidden></p>
+                  <div class="composer-foot">
+                    <span class="session-chip">Session <code id="session-label" translate="no">debug-session</code></span>
+                    <div class="composer-actions">
+                      <button type="button" class="ghost-btn cancel-btn" id="turn-cancel" hidden>停止等待</button>
+                      <button type="submit" class="primary-btn" id="turn-submit">
+                        <span class="button-label">执行任务</span><kbd>↵</kbd>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </section>
+
+              <aside class="card trace-card">
+                <div class="card-head">
+                  <div class="card-title"><h2>执行流水线</h2></div>
+                  <span class="tag tag-trace">TRACE</span>
+                </div>
+
+                <div class="trace-body" id="trace-body">
+                  <div class="trace-block">
+                    <div class="block-label">任务阶段</div>
+                    <ol id="plan-steps" class="plan-steps"><li class="muted">运行一轮后显示计划阶段。</li></ol>
+                  </div>
+                  <div class="trace-block">
+                    <div class="block-label">能力链</div>
+                    <div id="cap-chain" class="cap-chain"><span class="muted">—</span></div>
+                  </div>
+                  <div class="trace-block">
+                    <div class="block-label">产物 <span id="artifact-count" class="count-pill">0</span></div>
+                    <div id="artifact-list" class="artifact-list"><span class="muted">回答后显示产物链。</span></div>
+                  </div>
+                  <div class="trace-block">
+                    <div class="block-label">知识来源</div>
+                    <div id="source-list" class="source-list"><span class="muted">引用会在回答后出现。</span></div>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <!-- ===== 设备状态 ===== -->
+          <section id="view-machine" class="view" aria-labelledby="machine-title" hidden>
+            <div class="view-head">
+              <div><span class="eyebrow">LIVE TELEMETRY</span><h1 id="machine-title">设备状态</h1></div>
+              <span class="muted">权威事实来自遥测端口，采集于 <b id="m-captured">—</b></span>
+            </div>
+            <div class="machine-grid">
+              <section class="card machine-hero">
+                <div class="hero-top">
+                  <div>
+                    <div class="hero-model" id="m-model">—</div>
+                    <div class="hero-serial">S/N <code id="m-serial" translate="no">—</code> · <code id="m-id" translate="no">—</code></div>
+                  </div>
+                  <div class="state-pill" id="m-state-pill"><span></span><b id="m-state">—</b></div>
+                </div>
+                <div class="fuel-wrap">
+                  <div class="fuel-head"><span>燃油</span><b id="m-fuel">—</b></div>
+                  <div class="fuel-track"><i id="m-fuel-bar"></i></div>
+                </div>
+                <div class="metric-grid">
+                  <div class="metric"><span>发动机</span><b id="m-engine">—</b></div>
+                  <div class="metric"><span>累计小时</span><b id="m-hours">—</b></div>
+                  <div class="metric"><span>距下次保养</span><b id="m-service">—</b></div>
+                  <div class="metric"><span>故障码数</span><b id="m-fault-count">—</b></div>
+                </div>
+              </section>
+
+              <section class="card">
+                <div class="card-head"><div class="card-title"><h2>活动故障码</h2></div></div>
+                <div id="fault-list" class="fault-list"><span class="muted">加载中…</span></div>
+              </section>
+
+              <section class="card facts-card">
+                <div class="card-head"><div class="card-title"><h2>权威设备事实</h2></div></div>
+                <div id="facts-list" class="facts-list"></div>
+              </section>
+            </div>
+          </section>
+
+          <!-- ===== 能力目录 ===== -->
+          <section id="view-capabilities" class="view" aria-labelledby="capabilities-title" hidden>
+            <div class="view-head">
+              <div><span class="eyebrow">RUNTIME PROJECTION</span><h1 id="capabilities-title">能力目录</h1></div>
+              <span class="muted">由组合根显式加载的可信能力与工具。</span>
+            </div>
+            <div class="cap-sections">
+              <section class="card">
+                <div class="card-head"><div class="card-title"><h2>Capabilities</h2></div><span class="count-badge" id="cap-count">0</span></div>
+                <div id="capability-list" class="tile-list"></div>
+              </section>
+              <div class="cap-two">
+                <section class="card">
+                  <div class="card-head"><div class="card-title"><h2>Tools</h2></div><span class="count-badge" id="tool-count">0</span></div>
+                  <div id="tool-list" class="tile-list"></div>
+                </section>
+                <section class="card">
+                  <div class="card-head"><div class="card-title"><h2>Plugins</h2></div><span class="count-badge" id="plugin-runtime-count">0</span></div>
+                  <div id="plugin-runtime-list" class="tile-list"></div>
+                </section>
+              </div>
+              <div class="cap-two">
+                <section class="card">
+                  <div class="card-head"><div class="card-title"><h2>MCP Servers</h2></div><span class="count-badge" id="mcp-count">0</span></div>
+                  <div id="mcp-runtime-list" class="tile-list"></div>
+                </section>
+                <section class="card">
+                  <div class="card-head"><div class="card-title"><h2>Skills</h2></div><span class="count-badge">0</span></div>
+                  <div class="empty-card"><b>尚未注册 Skill</b><span>Skill 将作为按需加载的诊断流程接入。</span></div>
+                </section>
+              </div>
+            </div>
+          </section>
+
+          <!-- ===== 运行时配置 ===== -->
+          <section id="view-settings" class="view" aria-labelledby="settings-title" hidden>
+            <div class="view-head">
+              <div><span class="eyebrow">CONFIGURATION</span><h1 id="settings-title">运行时配置</h1></div>
+              <span class="muted">保存声明不会自动执行第三方代码或连接外部服务。</span>
+            </div>
+            <div class="settings-layout">
+              <nav class="settings-tabs" aria-label="配置分类" role="tablist">
+                <button id="tab-model" class="settings-tab active" data-settings="model" role="tab" aria-selected="true" aria-controls="settings-model">模型</button>
+                <button id="tab-mcp" class="settings-tab" data-settings="mcp" role="tab" aria-selected="false" aria-controls="settings-mcp" tabindex="-1">MCP Servers</button>
+                <button id="tab-plugins" class="settings-tab" data-settings="plugins" role="tab" aria-selected="false" aria-controls="settings-plugins" tabindex="-1">插件</button>
+              </nav>
+
+              <div class="settings-panes">
+                <!-- 模型 -->
+                <section id="settings-model" class="settings-pane active" role="tabpanel" aria-labelledby="tab-model">
+                  <div class="pane-head">
+                    <div><h2>模型配置</h2><p>配置诊断通道使用的模型与有限循环参数。</p></div>
+                    <span id="model-status-chip" class="chip chip-neutral">—</span>
+                  </div>
+                  <div class="runtime-summary">
+                    <div><span>当前适配器</span><b id="runtime-adapter">—</b></div>
+                    <div><span>配置状态</span><b id="runtime-applied">—</b></div>
+                    <div><span>规划模式</span><b id="runtime-planning">—</b></div>
+                    <div><span>安全通道</span><b>Diagnostic · Read-only</b></div>
+                  </div>
+                  <form id="model-form" class="form" autocomplete="off">
+                    <div class="form-section">Provider · 兼容本地 vLLM、Ollama、AXLLM(爱芯) 与 OpenAI-compatible 服务</div>
+                    <div class="grid-2">
+                      <label><span>提供商</span>
+                        <select id="model-provider" name="provider" autocomplete="off">
+                          <option value="demo">Demo(离线规则模型)</option>
+                          <option value="vllm">vLLM</option>
+                          <option value="ollama">Ollama</option>
+                          <option value="openai_compatible">OpenAI Compatible</option>
+                          <option value="axllm">AXLLM(爱芯边缘 · Qwen)</option>
+                        </select>
+                      </label>
+                      <label><span>模型名称</span><input id="model-name" name="model" maxlength="200" autocomplete="off" spellcheck="false" placeholder="例如：Qwen/Qwen3-4B…" /></label>
+                      <label class="col-2"><span>Base URL</span><input id="model-base-url" name="base_url" type="url" inputmode="url" maxlength="500" autocomplete="off" spellcheck="false" placeholder="例如：http://127.0.0.1:8000/v1…" /><small>Demo Provider 可留空。</small></label>
+                      <label class="col-2"><span>API Key</span><input id="model-api-key" type="password" name="api_key" maxlength="500" autocomplete="off" spellcheck="false" placeholder="sk-..." /><small>密钥保存在本地配置文件中，仅用于本机调试。</small></label>
+                    </div>
+                    <div class="form-section">推理与边界 · 保持小步、低温度和明确超时</div>
+                    <div class="grid-4">
+                      <label><span>规划模式</span>
+                        <select id="model-planning-mode" name="planning_mode" autocomplete="off">
+                          <option value="auto">auto（默认）</option>
+                          <option value="tool_call">tool_call（模型选工具）</option>
+                          <option value="rule">rule（规则编排）</option>
+                        </select>
+                        <small>4B 边缘模型建议选 rule：由规则稳定串联“读遥测→查手册→诊断”，模型只负责写诊断、不做编排。</small>
+                      </label>
+                      <label><span>Temperature</span><input id="model-temperature" name="temperature" type="number" inputmode="decimal" min="0" max="2" step="0.1" autocomplete="off" /></label>
+                      <label><span>最大输出 Token</span><input id="model-max-tokens" name="max_tokens" type="number" inputmode="numeric" min="1" max="131072" autocomplete="off" /></label>
+                      <label><span>连接超时（秒）</span><input id="model-timeout" name="timeout_seconds" type="number" inputmode="numeric" min="1" max="600" autocomplete="off" /></label>
+                      <label><span>最大工具步数</span><input id="model-max-steps" name="max_steps" type="number" inputmode="numeric" min="1" max="12" autocomplete="off" /></label>
+                      <label><span>模型调用超时（秒）</span><input id="model-call-timeout" name="model_call_timeout_seconds" type="number" inputmode="decimal" min="0.1" max="600" step="0.1" autocomplete="off" /></label>
+                      <label><span>工具调用超时（秒）</span><input id="tool-call-timeout" name="tool_call_timeout_seconds" type="number" inputmode="decimal" min="0.1" max="600" step="0.1" autocomplete="off" /></label>
+                      <label><span>整轮超时（秒）</span><input id="turn-timeout" name="turn_timeout_seconds" type="number" inputmode="decimal" min="0.1" max="1800" step="0.1" autocomplete="off" /></label>
+                      <label><span>关闭思考 /no_think</span><input id="model-disable-thinking" name="disable_thinking" type="checkbox" autocomplete="off" /><small>Qwen3 边缘(AXLLM)建议开启：跳过 &lt;think&gt; 推理，省 token、少截断。</small></label>
+                    </div>
+                    <div class="form-foot">
+                      <span id="model-save-msg" class="form-msg" role="status" aria-live="polite"></span>
+                      <button type="submit" class="primary-btn"><span class="button-label">保存模型配置</span></button>
+                    </div>
+                    <p id="model-form-error" class="form-error" role="alert" tabindex="-1" hidden></p>
+                  </form>
+                </section>
+
+                <!-- MCP -->
+                <section id="settings-mcp" class="settings-pane" role="tabpanel" aria-labelledby="tab-mcp" hidden>
+                  <div class="pane-head">
+                    <div><h2>MCP Servers</h2><p>统一管理远程或本地进程型工具服务。</p></div>
+                    <button id="add-mcp-btn" class="primary-btn" type="button">＋ 添加 Server</button>
+                  </div>
+                  <div class="notice"><b>声明与连接分离</b><span>调试阶段保存连接声明和工具白名单；MCP Host 接入后才会显示为已连接。</span></div>
+                  <div id="mcp-config-list" class="config-list"></div>
+                </section>
+
+                <!-- 插件 -->
+                <section id="settings-plugins" class="settings-pane" role="tabpanel" aria-labelledby="tab-plugins" hidden>
+                  <div class="pane-head">
+                    <div><h2>插件</h2><p>查看内置插件，并声明允许加载的第三方入口。</p></div>
+                    <button id="add-plugin-btn" class="primary-btn" type="button">＋ 添加插件</button>
+                  </div>
+                  <div class="form-section">运行中 · 由组合根显式加载的可信内置插件</div>
+                  <div id="builtin-plugin-list" class="config-list"></div>
+                  <div class="form-section">已配置 · 第三方入口不会因保存配置而自动执行</div>
+                  <div id="plugin-config-list" class="config-list"></div>
+                </section>
+              </div>
+            </div>
+          </section>
+
+          <!-- ===== 审计日志 ===== -->
+          <section id="view-audit" class="view" aria-labelledby="audit-title" hidden>
+            <div class="view-head">
+              <div><span class="eyebrow">APPEND-ONLY</span><h1 id="audit-title">审计日志</h1></div>
+              <div class="audit-tools">
+                <label class="filter-field" for="event-filter"><span>事件类型</span>
+                  <select id="event-filter" name="event_filter" class="mini-select" autocomplete="off"><option value="">全部事件类型</option></select>
+                </label>
+                <button class="ghost-btn" id="audit-refresh">刷新</button>
+              </div>
+            </div>
+            <section class="card">
+              <div id="event-list" class="event-list"></div>
+            </section>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- ===== 对话框:MCP ===== -->
+    <dialog id="mcp-dialog" class="dialog" aria-labelledby="mcp-dialog-title">
+      <form id="mcp-form" method="dialog" autocomplete="off">
+        <div class="dialog-head"><h2 id="mcp-dialog-title">添加 Server</h2><button type="button" class="dialog-x" data-close="mcp-dialog" aria-label="关闭">×</button></div>
+        <input id="mcp-id" name="id" type="hidden" />
+        <div class="grid-2">
+          <label><span>名称</span><input id="mcp-name" name="name" required maxlength="100" autocomplete="off" placeholder="例如：设备知识库…" /></label>
+          <label><span>Transport</span><select id="mcp-transport" name="transport" autocomplete="off"><option value="streamable_http">Streamable HTTP</option><option value="sse">SSE</option><option value="stdio">STDIO</option></select></label>
+          <label class="col-2"><span>Endpoint</span><input id="mcp-endpoint" name="endpoint" type="url" inputmode="url" maxlength="1000" autocomplete="off" spellcheck="false" placeholder="例如：http://127.0.0.1:9000/mcp…" /></label>
+          <label class="col-2"><span>Command</span><input id="mcp-command" name="command" maxlength="500" autocomplete="off" spellcheck="false" placeholder="例如：uvx package-name（仅 STDIO）…" /></label>
+          <label class="col-2"><span>Arguments</span><input id="mcp-arguments" name="arguments" autocomplete="off" spellcheck="false" placeholder="例如：--read-only, --machine=cat-306-demo…" /><small>使用英文逗号分隔。</small></label>
+          <label class="col-2"><span>环境变量名</span><input id="mcp-env-keys" name="env_keys" autocomplete="off" spellcheck="false" placeholder="例如：MCP_TOKEN, MCP_REGION…" /><small>只保存名称，不保存密钥值。</small></label>
+          <label class="col-2"><span>工具白名单</span><input id="mcp-tools" name="tool_allowlist" value="*" autocomplete="off" spellcheck="false" placeholder="例如：search_manual, get_status…" /></label>
+          <label class="toggle col-2"><input id="mcp-enabled" name="enabled" type="checkbox" /><span><b>请求启用</b><small>仅记录启用意图，当前调试 Host 不会自动连接。</small></span></label>
+        </div>
+        <p id="mcp-form-error" class="form-error" role="alert" tabindex="-1" hidden></p>
+        <div class="dialog-foot"><button type="button" class="ghost-btn" data-close="mcp-dialog">取消</button><button id="save-mcp-btn" type="submit" class="primary-btn"><span class="button-label">保存 Server</span></button></div>
+      </form>
+    </dialog>
+
+    <!-- ===== 对话框:插件 ===== -->
+    <dialog id="plugin-dialog" class="dialog" aria-labelledby="plugin-dialog-title">
+      <form id="plugin-form" method="dialog" autocomplete="off">
+        <div class="dialog-head"><h2 id="plugin-dialog-title">添加插件</h2><button type="button" class="dialog-x" data-close="plugin-dialog" aria-label="关闭">×</button></div>
+        <input id="plugin-id" name="id" type="hidden" />
+        <div class="grid-2">
+          <label><span>名称</span><input id="plugin-name" name="name" required maxlength="100" autocomplete="off" placeholder="例如：只读诊断扩展…" /></label>
+          <label><span>版本约束</span><input id="plugin-version" name="version" maxlength="60" autocomplete="off" spellcheck="false" placeholder="例如：&gt;=1.0,&lt;2.0…" /></label>
+          <label class="col-2"><span>Python Entry Point</span><input id="plugin-reference" name="reference" required maxlength="300" autocomplete="off" spellcheck="false" placeholder="例如：package.module:create_plugin…" /></label>
+          <label class="col-2"><span>插件配置（JSON）</span><textarea id="plugin-config" name="config" rows="6" autocomplete="off" spellcheck="false">{}</textarea><small>这里只保存插件参数；密钥应继续使用环境变量引用。</small></label>
+          <label class="toggle col-2"><input id="plugin-enabled" name="enabled" type="checkbox" /><span><b>请求启用</b><small>加载前仍需经过 allowlist 与权限策略校验。</small></span></label>
+        </div>
+        <p id="plugin-form-error" class="form-error" role="alert" tabindex="-1" hidden></p>
+        <div class="dialog-foot"><button type="button" class="ghost-btn" data-close="plugin-dialog">取消</button><button id="save-plugin-btn" type="submit" class="primary-btn"><span class="button-label">保存插件</span></button></div>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>

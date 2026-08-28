@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+dist/
+build/
+*.egg-info/
+runtime/
+
+# Local secrets (Langfuse keys, model API keys). Keep the tracked template only.
+.env
+.env.*
+!.env.example
+
+# Editor / tooling local files (may hold machine-specific endpoints & API keys)
+.claude/settings.local.json
+nohup.out
+

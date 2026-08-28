@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "equip-ai-agent"
+version = "0.1.0"
+description = "Minimal offline-first architecture for an edge equipment voice assistant"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+# Observability is opt-in: the core assistant stays dependency-free. Install
+# with `pip install 'equip-ai-agent[tracing]'` and set LANGFUSE_PUBLIC_KEY /
+# LANGFUSE_SECRET_KEY (and optionally LANGFUSE_BASE_URL) to enable Langfuse traces.
+# Targets the OTEL-based SDK (v3/v4); the adapter degrades to no-op otherwise.
+tracing = ["langfuse>=3,<5"]
+
+[project.scripts]
+equip = "cat_assistant.__main__:main"
+equip-ui = "cat_assistant.debug_ui:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+cat_assistant = ["ui/*.html", "ui/*.css", "ui/*.js"]
