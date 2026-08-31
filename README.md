@@ -427,7 +427,7 @@ python scripts/qq-channel.py
 
 ### 语音网关
 
-`VoiceGateway` 是语音输入的接入层：`SpeechRecognizerPort.transcribe()` → 置信度低于 0.65 时返回澄清话术 → 否则走 `AgentLoop.handle()` → `SpeechSynthesizerPort.synthesize()` 合成语音。替换两个语音端口即可接入 NVIDIA Riva 流式 ASR/TTS，无需改动循环与编排。
+`VoiceGateway` 是语音输入的接入层：`SpeechRecognizerPort.transcribe()` → 置信度低于 0.65 时返回澄清话术 → 否则走 `AgentLoop.handle()` → `SpeechSynthesizerPort.synthesize()` 合成语音。替换两个语音端口即可接入流式 ASR/TTS，无需改动循环与编排。
 
 ### 插件系统
 
@@ -502,8 +502,7 @@ equip-ui   # 调试 UI：http://127.0.0.1:8765/
 - `model` —— 必须与 axllm 服务实际暴露的模型名一致
 - `disable_thinking` / `stop` —— 边缘运行时适配，作用见上文"针对边缘推理运行时的适配"
 
-![alt text](image-2.png)
 
-
+![alt text](image-3.png)
 
 
